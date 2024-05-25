@@ -6,7 +6,7 @@ import PdePreludat
 data Guantelete = UnGuantelete{
     material :: Material, 
     gemas :: [Gema]
-}
+} deriving (Show)
 
 data Persona = UnaPersona{
     edad :: Number,
@@ -14,7 +14,7 @@ data Persona = UnaPersona{
     habilidades :: [Habilidad],
     nombre :: Nombre,
     planeta :: Planeta
-}
+} deriving (Eq, Show)
 
 -- -------------------- Defnición de Tipos -----------------------
 type Material = String
@@ -38,38 +38,37 @@ eliminarMitad :: Universo -> Universo
 eliminarMitad universo = drop (cantVictimas universo) universo
 
 estaCompleto :: Guantelete -> Bool
-estaCompleto guante = length (gemas guante) == 6 && material guante == "Uru"
+estaCompleto guante = ((==6) . length . gemas) guante && material guante == "Uru"
 
 cantVictimas :: Universo -> Number
 cantVictimas universo = div (length universo) 2
 
 --Punto 2
 aptoPendex :: Universo -> Bool
-aptoPendex universo = any ((<45) . edad) universo
+aptoPendex = any ((<45) . edad) 
 
 energiaTotalUniverso :: Universo -> Energia
-energiaTotalUniverso = sum . (map energia) . filter ((>1). length . habilidades)
+energiaTotalUniverso = sum . map energia . filter ((>1). length . habilidades)
 
 -- ----------------- Segunda Parte
---Punto 3
-aplicarPoderGema :: Gema -> Persona -> Persona
-aplicarPoderGema gema enemigo = gema enemigo
-
+-- Punto 3
 -- Funcion 1
 mente :: Number -> Gema
 mente = debilitarEnergia
 
 debilitarEnergia :: Number -> Persona -> Persona
-debilitarEnergia delta enemigo = enemigo { energia = energia enemigo - delta}
+debilitarEnergia delta enemigo = enemigo { 
+    energia = energia enemigo - delta
+    }
 
 -- Funcion 2
-alma :: Habilidad -> Number -> Gema
-alma habilidad delta = debilitarEnergia delta . quitarHabilidad habilidad
+alma :: Habilidad -> Gema
+alma habilidad = debilitarEnergia 10 . quitarHabilidad habilidad
 
 quitarHabilidad :: Habilidad -> Persona -> Persona
-quitarHabilidad habilidad enemigo
-    | elem habilidad (habilidades enemigo) = enemigo { habilidades = habilidadesSin habilidad enemigo}
-    | otherwise = enemigo
+quitarHabilidad habilidad enemigo = enemigo { 
+    habilidades = habilidadesSin habilidad enemigo
+    }
 
 habilidadesSin :: Habilidad -> Persona -> [Habilidad]
 habilidadesSin habilidad enemigo = filter (/= habilidad) (habilidades enemigo)
@@ -79,27 +78,29 @@ espacio :: Planeta -> Gema
 espacio planetaX = debilitarEnergia 20 . transportarEnemigo planetaX
 
 transportarEnemigo :: Planeta -> Persona -> Persona
-transportarEnemigo planetaX enemigo = enemigo { planeta = planetaX}
+transportarEnemigo planetaX enemigo = enemigo { 
+    planeta = planetaX
+    }
 
 -- Funcion 4
 poder :: Gema
-poder enemigo = ((debilitarEnergia (energia enemigo)) . quitarHabilidadSi) enemigo
+poder enemigo = debilitarEnergia (energia enemigo) . quitarHabilidadSi $ enemigo
 
 quitarHabilidadSi :: Persona -> Persona
 quitarHabilidadSi enemigo
-    | length (habilidades enemigo) <= 2 = enemigo { habilidades = []}
+    | (<= 2) . length . habilidades $ enemigo  = enemigo { habilidades = []}
     | otherwise = enemigo
 
 -- Funcion 5
 tiempo :: Gema
-tiempo = (debilitarEnergia 50) . reducirEdad
+tiempo = debilitarEnergia 50 . reducirEdad
 
 reducirEdad :: Persona -> Persona
 reducirEdad enemigo = enemigo{ edad = max 18 (div (edad enemigo) 2)}
 
 -- Funcion 2
 loca :: Gema -> Gema
-loca gema = aplicarPoderGema gema . aplicarPoderGema gema
+loca gema = gema . gema
 
 --Punto 4
 guante :: Guantelete
